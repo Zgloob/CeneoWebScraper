@@ -34,8 +34,13 @@ class Opinion:
         for key, value in self.components.items():
             setattr(self, key, extractComponent(opinion, *value))
         self.opinionId = opinion["data-entry-id"] 
+        return self 
 
-    def __dict__(self):
-        pass
-            
-         
+    def toDict(self):
+        return {key: getattr(self, key) for key in self.components.keys()} | {"opinionId": self.opinionDict}
+        
+    def __str__(self) -> str:
+        return f"opinionId: {self.opinionId}<br>" + "<br>".join(f"{key}: {str(getattr(self, key))}" for key in self.components.keys())
+
+    def __repr__(self) -> str:
+        return f"Opinion(opinionId)={self.opinionId}, " + ", ".join(f"{key}: {str(getattr(self, key))}" for key in self.components.keys()) + ")"
