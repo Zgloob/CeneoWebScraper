@@ -16,7 +16,7 @@ class Opinion:
         "useless":["span[id^='votes-no']"]
     }
 
-    def __init__(self, opinionId = None, author = None, rcmd = None, stars = None, content = None, pros = [], cons = [], purchased = None, publishDate = None, purchaseDate = None, useful = None, useless = None):
+    def __init__(self, opinionId = None, author = None, rcmd = None, stars = None, content = None, pros = None, cons = None, purchased = None, publishDate = None, purchaseDate = None, useful = None, useless = None) -> None:
         self.opinionId = opinionId
         self.author = author
         self.rcmd = rcmd
@@ -34,7 +34,16 @@ class Opinion:
         for key, value in self.components.items():
             setattr(self, key, extractComponent(opinion, *value))
         self.opinionId = opinion["data-entry-id"] 
-        return self 
+        return self
+
+    def transformOpinion(self):
+        self.rcmd = True if self.rcmd == "Polecam" else False if self.rcmd == "Nie polecam" else self.rcmd 
+        self.stars= float(self.stars.split("/")[0].replace(",","."))
+        self.content = self.content.replace("\n"," ").replace("\r"," ")
+        self.purchased = bool(self.purchased)
+        self.useful = int(self.useful)
+        self.useless = int(self.useless) 
+        return self
 
     def toDict(self):
         return {key: getattr(self, key) for key in self.components.keys()} | {"opinionId": self.opinionDict}
@@ -43,4 +52,4 @@ class Opinion:
         return f"opinionId: {self.opinionId}<br>" + "<br>".join(f"{key}: {str(getattr(self, key))}" for key in self.components.keys())
 
     def __repr__(self) -> str:
-        return f"Opinion(opinionId)={self.opinionId}, " + ", ".join(f"{key}: {str(getattr(self, key))}" for key in self.components.keys()) + ")"
+        return f"Opinion(opinionId={self.opinionId}, " + ", ".join(f"{key} = {str(getattr(self, key))}" for key in self.components.keys()) + ")"

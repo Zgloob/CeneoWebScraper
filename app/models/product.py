@@ -1,33 +1,41 @@
-from app.models.opinion import Opinion
+import requests
+from bs4 import BeautifulSoup
 from app.utils import extractComponent
 from app.models.opinion import Opinion
 import json
 
 class Product:
-    def __init__(self, productId, productName = None, opinions = []):
+    def __init__(self, productId, productName = None, opinions = []) -> None:
         self.productId = productId
         self.productName = productName
         self.opinions = opinions
 
-def extraProduct(self):
-    
-    respons = requests.get('https://www.ceneo.pl/{}#tab=reviews'.format(self.productId))
-    page = 2
-    while respons:
-        print(page)
-        pageDOM = BeautifulSoup(respons.text, 'html.parser')
-        opinions = pageDOM.select("div.js_product-review")
-        for opinion in opinions:
-            self.opinions.append(Opinion().extractOpinion(opinion).transformOpinion())
-        respons = requests.get(
-            'https://www.ceneo.pl/{}/opinie-'.format(self.productId)+str(page), allow_redirects = False)
-        if respons.status_code==200:
-            page += 1
-        else:
-            break
+    def extraProduct(self):
+        respons = requests.get('https://www.ceneo.pl/{}#tab=reviews'.format(self.productId))
+        page = 2
+        while respons:
+            pageDOM = BeautifulSoup(respons.text, 'html.parser')
+            opinions = pageDOM.select("div.js_product-review")
+            for opinion in opinions:
+                self.opinions.append(Opinion().extractOpinion(opinion).transformOpinion())
+            respons = requests.get(
+                'https://www.ceneo.pl/{}/opinie-'.format(self.productId)+str(page), allow_redirects = False)
+            if respons.status_code==200:
+                page += 1
+            else:
+                break
+
     def extractProduct(self):
         with open(f"app/products/{self.productId}.json", "w", encoding="UTF-8") as f:
             json.dump(self.toDict(), f, indent=4, ensure_ascii=False)
+
+    def importProduct(self):
+        with open(f"app/products/{self.productId}.json", "r", encoding="UTF-8") as f:
+            product = json.load(f)
+            self.productName = product['productName']
+            opinions = product['opinions']
+            for opinion in opinions:
+                self.opinions.append(Opinion(**opinion))
 
     def toDict(self):
         return {
